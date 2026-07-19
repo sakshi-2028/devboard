@@ -1,21 +1,7 @@
-FROM node:20-alpine
-
-RUN addgroup -S app && adduser -S -G app app
-
+FROM node:24
 WORKDIR /app
-
-COPY package*.json ./
-
-RUN npm ci
-
+COPY package.json package-lock.json ./
+RUN npm install --legacy-peer-deps
 COPY . .
-
-RUN npm run build
-
-RUN chown -R app:app /app
-
-EXPOSE 4173
-
-CMD ["npm", "run", "preview", "--", "--host", "0.0.0.0", "--port", "4173"]
-
-
+EXPOSE 5173
+CMD ["npm","run","dev"]
