@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: devboardfrontend-deployment
+  labels:
+    app: devboardfrontend-deployment
+
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: devboardfrontend-deployment
+  template:
+    metadata:
+      labels:
+        app: devboardfrontend-deployment
+    spec:
+      containers:
+      - name: devboardfrontend
+        image: sakshi2027/devboard-frontend:v1.0
+        ports:
+        - containerPort: 5173
