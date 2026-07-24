@@ -1,0 +1,21 @@
+# Cluster settings for kind (Kubernetes IN Docker).
+#
+# The only thing this file adds is a port mapping. A kind "node" is really a
+# Docker container, so a NodePort service is only reachable from your machine
+# if that port is published — exactly like -p on docker run.
+#
+# Without extraPortMappings, http://localhost:30080 refuses to connect even
+# though every pod is Running and healthy. Nothing warns you about it.
+#
+# Create the cluster with:
+#   kind create cluster --config k8s/kind-config.yaml --name k8s
+
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+nodes:
+  - role: control-plane
+    extraPortMappings:
+      # 30080 is the nodePort in frontend-service.yml. Both sides must match.
+      - containerPort: 30080
+        hostPort: 30080
+        protocol: TCP
