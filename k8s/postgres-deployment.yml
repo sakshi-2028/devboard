@@ -1,25 +1,25 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: devboard-backend-deployment
+  name: postgres-deployment
   namespace: devboard
   labels:
-    app: devboard-backend
+    app: devboard-postgres
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: devboard-backend
+      app: devboard-postgres
   template:
     metadata:
       labels:
-        app: devboard-backend
+        app: devboard-postgres
     spec:
       containers:
-      - name: devboard-backend
-        image: sakshi2027/devboard-backend:v1.0 
+      - name: postgres
+        image: postgres:16-alpine
         ports:
-          - containerPort: 8081
+          - containerPort: 5432
         env:
           - name: POSTGRES_USER
             valueFrom:
@@ -38,15 +38,23 @@ spec:
               secretKeyRef:
                 name: devboard-secrets
                 key: POSTGRES_DB
-
-          - name: POSTGRES_URL
-            value: postgres://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@postgres:5432/$(POSTGRES_DB)?sslmode=disable
           
-          - name: PORT
-            value: "8081"
-        livenessProbe:
-          httpGet:
-            path: /health
-            port: 8081
+        readinessProbe:
+          exec:
+            command: ["sh", "-c", "pg_isready -U $(POSTGRES_USER) -d $(POSTGRES_DB)"]
           initialDelaySeconds: 15
           periodSeconds: 10
+        volumeMounts:
+          - name: init
+            mountPath: /docker-entrypoint-initdb.d
+            readOnly: true
+          - name: data 
+            mountPath: /var/lib/postgresql/data
+
+      volumes:
+        - name: init
+          configMap:
+            name: postgres-init 
+        - name: data
+          persistentVolumeClaim:
+            claimName: postgres-pvc
