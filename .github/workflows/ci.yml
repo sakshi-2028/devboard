@@ -3,8 +3,7 @@ name: CI
 on:
   push:
     branches:
-      - feat-githubactions
-
+      - CI-CD
 jobs:
   frontend-ci:
     runs-on: ubuntu-latest
