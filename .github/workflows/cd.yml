@@ -2,6 +2,11 @@ name: CD
 
 on:
   workflow_call:
+    secrets:
+      DOCKERHUB_TOKEN:
+        required: true
+      POSTGRES_PASSWORD:
+        required: true
 
 jobs:
   deploy:
@@ -11,9 +16,13 @@ jobs:
       - X64
 
     env:
+      DOCKERHUB_USERNAME: ${{ vars.DOCKERHUB_USERNAME }}
+
       FRONTEND_HOST_PORT: "8080"
+
       BACKEND_HOST_PORT: "8081"
       BACKEND_PORT: "8080"
+
       POSTGRES_HOST_PORT: "5432"
       POSTGRES_USER: "devboard"
       POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
@@ -26,8 +35,29 @@ jobs:
       - name: Log in to Docker Hub
         uses: docker/login-action@v4
         with:
-          username: ${{ vars.DOCKERHUB_USERNAME }}
+          username: ${{ env.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Check required variables
+        shell: bash
+        run: |
+          required_variables=(
+            DOCKERHUB_USERNAME
+            FRONTEND_HOST_PORT
+            BACKEND_HOST_PORT
+            BACKEND_PORT
+            POSTGRES_HOST_PORT
+            POSTGRES_USER
+            POSTGRES_PASSWORD
+            POSTGRES_DB
+          )
+
+          for variable_name in "${required_variables[@]}"; do
+            if [ -z "${!variable_name}" ]; then
+              echo "::error::$variable_name is not configured"
+              exit 1
+            fi
+          done
 
       - name: Validate Docker Compose configuration
         run: docker compose config --quiet
