@@ -86,3 +86,10 @@ jobs:
             context: ./backend
             push: true
             tags: ${{ vars.DOCKERHUB_USERNAME }}/devboard-backend:ci-v2
+  deploy:
+      name: Deploy application
+      needs:
+        - frontend-ci
+        - backend-ci
+      uses: ./.github/workflows/cd.yml
+      secrets: inherit
